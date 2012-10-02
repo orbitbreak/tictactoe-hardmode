@@ -1,9 +1,13 @@
 # A Tic-Tac-Toe game
 #   ...without mercy
+#
+# Just run tictactoe-hardmode.py
+#   and try your hardest to win!
+# Good luck.
 
-from functools import partial
-import random, tkMessageBox, sys
 from Tkinter import *
+import random, tkMessageBox, sys
+from functools import partial
 
 textsize = 16
 
@@ -14,8 +18,8 @@ class TicTacToe(object):
                     {1, 5, 9}, {3, 5, 7})
 
     def __init__(self, top):
+
         self.player = bool(random.randint(0,1))
-		
         self.button_dic = {}   # buttons and StringVar()
         self.top = top
         self.top.geometry("240x240+20+20")
@@ -29,11 +33,24 @@ class TicTacToe(object):
         
         self.buttons()
         
-        # tie if moves finish
         self.tie = True
         self.moves = 0
         self.next_player.set(self.player)
 
+    def stop(self):
+          
+        if not self.tie:
+            self.draw("gg O" if self.player else "gg X")
+        elif self.moves == 9:
+            self.draw("Nice." )
+        else:
+            self.moves = 99
+            self.tie = False
+
+        self.next_player.set(self.player)
+
+        self.top.destroy()
+        raise SystemExit('Bye.')		
 
     def play(self):
         while self.moves < 9 and self.tie:
@@ -59,38 +76,16 @@ class TicTacToe(object):
                 b_col = 0
                 b_row += 1
 				
-        # don't know how to separate from play field using grid
         Button(self.top, text = 'Accept Defeat', font = ('Arial', textsize * 3/4),
                 command = self.stop).grid(row = 2, column = 1, columnspan = 3)
-
-
-    def stop(self):
-          
-        if not self.tie:
-            self.draw("gg O" if self.player else "gg X")
-        elif self.moves == 9:
-            self.draw("Nice." )
-        else:
-            self.moves = 99
-            self.tie = False
-
-        # unsetting wait events
-        self.next_player.set(self.player)
-
-        self.top.destroy()
-        raise SystemExit('Bye.')
 
     def cb_handler(self, square_number):
         this_player = "X" if self.player  else "O"
 
-        # square not already occupied
         if self.legal_move(square_number):
 
-            # change button's text to "X" or "O"
             self.button_dic[square_number][0].set(this_player)
             self.X_O_dict[this_player].append(square_number)
-
-            # set background to occupied color
             self.button_dic[square_number][1].config(bg = 'red')
 
             self.check_for_winner(self.X_O_dict[this_player])
@@ -111,7 +106,6 @@ class TicTacToe(object):
             for sub_set in self.winners:
                 if len(this & sub_set) == 2:
                     one_to_return = next(iter(sub_set - this))
-                    # all one of  them legal, then return
                     if self.legal_move(one_to_return):
                         return one_to_return
 
@@ -125,12 +119,7 @@ class TicTacToe(object):
         tl.lift()
         tl.wait_window()
 
-    def legal_move(self, square_number):
-        return (square_number not in self.X_O_dict["X"] and
-                   square_number not in self.X_O_dict["O"])
-
     def choice(self):
-        # a.i.
         if self.player:
             for but in self.button_dic:
                 self.button_dic[but][1].state = DISABLED
@@ -143,13 +132,14 @@ class TicTacToe(object):
                         self.cb_handler(chosen)
                         break
         else:
-            # person moves, set buttons back to normal
             for but in self.button_dic:
                 self.button_dic[but][1].state = NORMAL
-            # we can wait variable change, because they are BooleanVars
             self.top.wait_variable(self.next_player)
-        self.moves += 1
-
+        self.moves += 1		
+		
+    def legal_move(self, square_number):
+        return (square_number not in self.X_O_dict["X"] and
+                   square_number not in self.X_O_dict["O"])
 
 game = TicTacToe(Tk())
 game.play()
